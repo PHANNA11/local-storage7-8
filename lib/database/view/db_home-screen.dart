@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:local_storage/database/connection/db_connection.dart';
 import 'package:local_storage/database/model/product_model.dart';
 
@@ -66,35 +67,71 @@ class _DBHomeScreenState extends State<DBHomeScreen> {
   }
 
   Widget buildProductCard(Product product) {
-    return Card(
-      child: SizedBox(
-        height: 70,
-        width: double.infinity,
-        child: ListTile(
-          leading: const SizedBox(
-            height: 60,
-            width: 60,
-            child: Image(
-              fit: BoxFit.cover,
-              image: NetworkImage(
-                  'https://imgs.search.brave.com/B45IN-UUkwqK6Ps9GoDyi5TaUMCWWxgdnoPKJTyhOPk/rs:fit:1200:1200:1/g:ce/aHR0cHM6Ly9mbG9y/aXBhZm9vZGRlbGl2/ZXJ5LmNvbS5ici93/cC1jb250ZW50L3Vw/bG9hZHMvMjAyMS8w/NC9jb2NhLWNvbGEt/Mi1saXRyb3M0ODc1/XzAuanBn'),
+    return Slidable(
+        key: const ValueKey(0),
+        endActionPane: ActionPane(
+          motion: const ScrollMotion(),
+          children: [
+            SlidableAction(
+              onPressed: (context) async {
+                await DBConnection()
+                    .deleteProduct(product.id!)
+                    .whenComplete(() {
+                  getDataFromDB();
+                });
+              },
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+              icon: Icons.delete,
+              label: 'Delete',
+            ),
+            SlidableAction(
+              // An action can be bigger than the others.
+
+              onPressed: (context) {
+                showDialog(
+                  context: context,
+                  builder: (context) {
+                    return buildUpdateProduct(product);
+                  },
+                );
+              },
+              backgroundColor: const Color(0xFF0392CF),
+              foregroundColor: Colors.white,
+              icon: Icons.edit_note,
+              label: 'Edit',
+            ),
+          ],
+        ),
+        child: Card(
+          child: SizedBox(
+            height: 70,
+            width: double.infinity,
+            child: ListTile(
+              leading: const SizedBox(
+                height: 60,
+                width: 60,
+                child: Image(
+                  fit: BoxFit.cover,
+                  image: NetworkImage(
+                      'https://imgs.search.brave.com/B45IN-UUkwqK6Ps9GoDyi5TaUMCWWxgdnoPKJTyhOPk/rs:fit:1200:1200:1/g:ce/aHR0cHM6Ly9mbG9y/aXBhZm9vZGRlbGl2/ZXJ5LmNvbS5ici93/cC1jb250ZW50L3Vw/bG9hZHMvMjAyMS8w/NC9jb2NhLWNvbGEt/Mi1saXRyb3M0ODc1/XzAuanBn'),
+                ),
+              ),
+              title: Row(
+                children: [
+                  Expanded(child: Text(product.name.toString())),
+                  Expanded(
+                      child: Text(
+                    '\$ ${product.price}',
+                    style: const TextStyle(color: Colors.red),
+                  )),
+                ],
+              ),
+              subtitle: const Text('softdrink'),
+              trailing: const Icon(Icons.west_sharp),
             ),
           ),
-          title: Row(
-            children: [
-              Expanded(child: Text(product.name.toString())),
-              Expanded(
-                  child: Text(
-                '\$ ${product.price}',
-                style: const TextStyle(color: Colors.red),
-              )),
-            ],
-          ),
-          subtitle: const Text('softdrink'),
-          trailing: const Icon(Icons.west_sharp),
-        ),
-      ),
-    );
+        ));
   }
 
   Widget buildAddProduct() {
@@ -148,9 +185,72 @@ class _DBHomeScreenState extends State<DBHomeScreen> {
                       price: double.parse(priceController.text)))
                   .whenComplete(() {
                 getDataFromDB();
+                
               });
             },
             child: const Text('add'))
+      ],
+      title: const Text('From Product'),
+    );
+  }
+
+  Widget buildUpdateProduct(Product product) {
+    nameController.text = product.name!;
+    qtyController.text = product.qty.toString();
+    priceController.text = product.price.toString();
+    return AlertDialog(
+      contentPadding: const EdgeInsets.all(0),
+      content: SizedBox(
+        height: 500,
+        width: 500,
+        child: ListView(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: TextField(
+                controller: nameController,
+                decoration: const InputDecoration(
+                    hintText: 'procut Name', border: OutlineInputBorder()),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: TextField(
+                controller: qtyController,
+                decoration: const InputDecoration(
+                    hintText: 'procut Qty', border: OutlineInputBorder()),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: TextField(
+                controller: priceController,
+                decoration: const InputDecoration(
+                    hintText: 'procut price', border: OutlineInputBorder()),
+              ),
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+            },
+            child: const Text('cancel')),
+        ElevatedButton(
+            onPressed: () async {
+              await DBConnection()
+                  .updateProduct(Product(
+                      id: product.id,
+                      name: nameController.text,
+                      qty: int.parse(qtyController.text),
+                      price: double.parse(priceController.text)))
+                  .whenComplete(() {
+                getDataFromDB();
+              });
+            },
+            child: const Text('Update'))
       ],
       title: const Text('From Product'),
     );

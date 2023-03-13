@@ -28,4 +28,15 @@ class DBConnection {
     List<Map<String, dynamic>> result = await db.query(tableName);
     return result.map((e) => Product.productModelFromJson(e)).toList();
   }
+
+  Future<void> deleteProduct(int id) async {
+    var db = await initDataBase();
+    await db.delete(tableName, where: '$fId=?', whereArgs: [id]);
+  }
+
+  Future<void> updateProduct(Product product) async {
+    var db = await initDataBase();
+    await db.update(tableName, product.productModelToJson(),
+        where: '$fId=?', whereArgs: [product.id]);
+  }
 }
