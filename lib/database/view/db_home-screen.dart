@@ -1,5 +1,8 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:local_storage/database/connection/db_connection.dart';
 import 'package:local_storage/database/model/product_model.dart';
 
@@ -15,6 +18,7 @@ class _DBHomeScreenState extends State<DBHomeScreen> {
   TextEditingController qtyController = TextEditingController();
   TextEditingController priceController = TextEditingController();
   late DBConnection db;
+  File? imageFile;
   //late Future<List<Product>> listProduct;
   List<Product> listProduct = [];
   getDataFromDB() async {
@@ -108,14 +112,15 @@ class _DBHomeScreenState extends State<DBHomeScreen> {
             height: 70,
             width: double.infinity,
             child: ListTile(
-              leading: const SizedBox(
+              leading: SizedBox(
                 height: 60,
                 width: 60,
-                child: Image(
-                  fit: BoxFit.cover,
-                  image: NetworkImage(
-                      'https://imgs.search.brave.com/B45IN-UUkwqK6Ps9GoDyi5TaUMCWWxgdnoPKJTyhOPk/rs:fit:1200:1200:1/g:ce/aHR0cHM6Ly9mbG9y/aXBhZm9vZGRlbGl2/ZXJ5LmNvbS5ici93/cC1jb250ZW50L3Vw/bG9hZHMvMjAyMS8w/NC9jb2NhLWNvbGEt/Mi1saXRyb3M0ODc1/XzAuanBn'),
-                ),
+                child: product.image == null
+                    ? const FlutterLogo()
+                    : Image(
+                        fit: BoxFit.cover,
+                        image: FileImage(File(product.image.toString())),
+                      ),
               ),
               title: Row(
                 children: [
@@ -166,6 +171,40 @@ class _DBHomeScreenState extends State<DBHomeScreen> {
                     hintText: 'procut price', border: OutlineInputBorder()),
               ),
             ),
+            SizedBox(
+              height: 200,
+              width: 200,
+              //color: Colors.red,
+              child: Center(
+                child: Wrap(
+                  direction: Axis.vertical,
+                  children: [
+                    Row(
+                      children: [
+                        IconButton(
+                            onPressed: () {
+                              cameraImage();
+                            },
+                            icon: const Icon(Icons.camera_alt)),
+                        IconButton(
+                            onPressed: () {
+                              gallaryImage();
+                            },
+                            icon: const Icon(Icons.image)),
+                      ],
+                    ),
+                    imageFile == null
+                        ? const SizedBox()
+                        : SizedBox(
+                            height: 150,
+                            width: 300,
+                            child: Image(
+                                fit: BoxFit.cover,
+                                image: FileImage(File(imageFile!.path))))
+                  ],
+                ),
+              ),
+            )
           ],
         ),
       ),
@@ -179,13 +218,14 @@ class _DBHomeScreenState extends State<DBHomeScreen> {
             onPressed: () async {
               await DBConnection()
                   .addProduct(Product(
-                      id: DateTime.now().millisecond,
-                      name: nameController.text,
-                      qty: int.parse(qtyController.text),
-                      price: double.parse(priceController.text)))
+                image: imageFile!.path,
+                id: DateTime.now().millisecond,
+                name: nameController.text,
+                qty: int.parse(qtyController.text),
+                price: priceController.text,
+              ))
                   .whenComplete(() {
                 getDataFromDB();
-                
               });
             },
             child: const Text('add'))
@@ -229,6 +269,17 @@ class _DBHomeScreenState extends State<DBHomeScreen> {
                     hintText: 'procut price', border: OutlineInputBorder()),
               ),
             ),
+            SizedBox(
+              height: 100,
+              width: 200,
+              //color: Colors.red,
+              child: Wrap(
+                children: [
+                  IconButton(
+                      onPressed: () {}, icon: const Icon(Icons.camera_alt)),
+                ],
+              ),
+            )
           ],
         ),
       ),
@@ -245,7 +296,7 @@ class _DBHomeScreenState extends State<DBHomeScreen> {
                       id: product.id,
                       name: nameController.text,
                       qty: int.parse(qtyController.text),
-                      price: double.parse(priceController.text)))
+                      price: priceController.text))
                   .whenComplete(() {
                 getDataFromDB();
               });
@@ -254,5 +305,20 @@ class _DBHomeScreenState extends State<DBHomeScreen> {
       ],
       title: const Text('From Product'),
     );
+  }
+
+  void gallaryImage() async {
+    var fileData = await ImagePicker().pickImage(source: ImageSource.gallery);
+    setState(() {
+      imageFile = File(fileData!.path);
+    });
+  }
+
+  void cameraImage() async {
+    var fileData = await ImagePicker()
+        .pickImage(source: ImageSource.camera, imageQuality: 300);
+    setState(() {
+      imageFile = File(fileData!.path);
+    });
   }
 }

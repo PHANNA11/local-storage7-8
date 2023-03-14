@@ -10,7 +10,7 @@ class DBConnection {
       join(path, 'userdatabase.db'),
       onCreate: (database, version) async {
         await database.execute(
-          'CREATE TABLE $tableName($fId INTEGER PRIMARY KEY, $fName TEXT, $fQty INTEGER , $fPrice)',
+          'CREATE TABLE $tableName($fId INTEGER PRIMARY KEY, $fName TEXT, $fQty INTEGER , $fPrice TEXT ,$fImage TEXT)',
         );
       },
       version: 1,

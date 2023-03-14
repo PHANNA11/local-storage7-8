@@ -16,6 +16,10 @@
 	<string>local_storage</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>select Image</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Take a photo</string>
 	<key>CFBundleShortVersionString</key>
 	<string>$(FLUTTER_BUILD_NAME)</string>
 	<key>CFBundleSignature</key>
