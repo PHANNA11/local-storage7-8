@@ -1,4 +1,5 @@
 import 'package:local_storage/database/constant/database_fiel.dart';
+import 'package:local_storage/database/model/catagory_model.dart';
 import 'package:local_storage/database/model/product_model.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
@@ -38,5 +39,29 @@ class DBConnection {
     var db = await initDataBase();
     await db.update(tableName, product.productModelToJson(),
         where: '$fId=?', whereArgs: [product.id]);
+  }
+
+  Future<Database> initDataBaseCatagory() async {
+    String path = await getDatabasesPath();
+    return openDatabase(
+      join(path, 'userdatabase.db'),
+      onCreate: (database, version) async {
+        await database.execute(
+          'CREATE TABLE $tableCatagorynName($fCatagoryID INTEGER PRIMARY KEY, $fCatagoryName TEXT,$fCatagoryImage TEXT)',
+        );
+      },
+      version: 1,
+    );
+  }
+
+  Future<void> addCatagory(CatagoryModel catagoryModel) async {
+    var db = await initDataBaseCatagory();
+    await db.insert(tableCatagorynName, catagoryModel.catagoryToJson());
+  }
+
+  Future<List<CatagoryModel>> getCatagoryList() async {
+    var db = await initDataBaseCatagory();
+    List<Map<String, dynamic>> result = await db.query(tableCatagorynName);
+    return result.map((e) => CatagoryModel.catagoryFromJson(e)).toList();
   }
 }
