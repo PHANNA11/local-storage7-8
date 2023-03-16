@@ -1,7 +1,10 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:local_storage/database/connection/db_connection.dart';
+import 'package:local_storage/database/model/catagory_model.dart';
 
 class CatagoryScreen extends StatefulWidget {
   const CatagoryScreen({Key? key}) : super(key: key);
@@ -13,6 +16,22 @@ class CatagoryScreen extends StatefulWidget {
 class _CatagoryScreenState extends State<CatagoryScreen> {
   File? imageFile;
   TextEditingController catagoryController = TextEditingController();
+  List<CatagoryModel> listCatagory = [];
+  getCatagoryFromDB() async {
+    await DBConnection().getCatagoryList().then((value) {
+      setState(() {
+        listCatagory = value;
+      });
+    });
+  }
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    getCatagoryFromDB();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -35,14 +54,18 @@ class _CatagoryScreenState extends State<CatagoryScreen> {
         ],
       ),
       body: ListView.builder(
-        itemCount: 4,
+        itemCount: listCatagory.length,
         itemBuilder: (context, index) {
-          return const Card(
-            color: Color.fromARGB(255, 239, 235, 222),
+          return Card(
+            color: const Color.fromARGB(255, 239, 235, 222),
             child: ListTile(
+              leading: Image(
+                  image: FileImage(
+                      File(listCatagory[index].catagoryImage.toString()))),
               title: Text(
-                'Soft drink',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24),
+                listCatagory[index].catagoryName.toString(),
+                style:
+                    const TextStyle(fontWeight: FontWeight.bold, fontSize: 24),
               ),
             ),
           );
@@ -110,7 +133,21 @@ class _CatagoryScreenState extends State<CatagoryScreen> {
               Navigator.pop(context);
             },
             child: const Text('cancel')),
-        ElevatedButton(onPressed: () async {}, child: const Text('add'))
+        ElevatedButton(
+            onPressed: () async {
+              await DBConnection()
+                  .addCatagory(CatagoryModel(
+                      catagoryId: DateTime.now().millisecond,
+                      catagoryName: catagoryController.text,
+                      catagoryImage: imageFile!.path))
+                  .whenComplete(() {
+                SchedulerBinding.instance.addPostFrameCallback((timeStamp) {
+                  getCatagoryFromDB();
+                  Navigator.pop(context);
+                });
+              });
+            },
+            child: const Text('add'))
       ],
       title: const Text('From Product'),
     );

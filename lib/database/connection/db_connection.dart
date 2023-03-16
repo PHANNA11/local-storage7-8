@@ -11,7 +11,7 @@ class DBConnection {
       join(path, 'userdatabase.db'),
       onCreate: (database, version) async {
         await database.execute(
-          'CREATE TABLE $tableName($fId INTEGER PRIMARY KEY, $fName TEXT, $fQty INTEGER , $fPrice TEXT ,$fImage TEXT)',
+          'CREATE TABLE $tableName($fId INTEGER PRIMARY KEY, $fName TEXT, $fQty INTEGER , $fPrice TEXT ,$fImage TEXT,$fcatagory TEXT)',
         );
       },
       version: 1,
@@ -44,7 +44,7 @@ class DBConnection {
   Future<Database> initDataBaseCatagory() async {
     String path = await getDatabasesPath();
     return openDatabase(
-      join(path, 'userdatabase.db'),
+      join(path, 'userdatabasepro.db'),
       onCreate: (database, version) async {
         await database.execute(
           'CREATE TABLE $tableCatagorynName($fCatagoryID INTEGER PRIMARY KEY, $fCatagoryName TEXT,$fCatagoryImage TEXT)',
@@ -63,5 +63,17 @@ class DBConnection {
     var db = await initDataBaseCatagory();
     List<Map<String, dynamic>> result = await db.query(tableCatagorynName);
     return result.map((e) => CatagoryModel.catagoryFromJson(e)).toList();
+  }
+
+  Future<void> deleteCatagory(int catagoryId) async {
+    var db = await initDataBaseCatagory();
+    await db.delete(tableCatagorynName,
+        where: '$fCatagoryID=?', whereArgs: [catagoryId]);
+  }
+
+  Future<void> updateCatagory(CatagoryModel catagoryModel) async {
+    var db = await initDataBaseCatagory();
+    await db.update(tableCatagorynName, catagoryModel.catagoryToJson(),
+        where: '$fCatagoryID=?', whereArgs: [catagoryModel.catagoryId]);
   }
 }

@@ -7,10 +7,19 @@ class Product {
   int? qty;
   String? price;
   String? image;
-  Product({this.id, this.name, this.qty, this.price, this.image});
+  String? catagory;
+  Product(
+      {this.id, this.name, this.qty, this.price, this.image, this.catagory});
   // for set data to  Database
   Map<String, dynamic> productModelToJson() {
-    return {fId: id, fName: name, fQty: qty, fPrice: price, fImage: image};
+    return {
+      fId: id,
+      fName: name,
+      fQty: qty,
+      fPrice: price,
+      fImage: image,
+      fcatagory: catagory
+    };
   }
 
 // for get data  from Database
@@ -19,5 +28,6 @@ class Product {
         name = res[fName],
         qty = res[fQty],
         price = res[fPrice],
-        image = res[fImage];
+        image = res[fImage],
+        catagory = res[fcatagory];
 }
